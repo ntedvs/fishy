@@ -281,7 +281,7 @@ function ChunkInspector({
   return (
     <aside
       aria-label={`Details for chunk ${index + 1}`}
-      className="sticky top-6 max-h-[calc(100vh-118px)] self-start overflow-y-auto border-l border-line-strong pl-6 max-md:fixed max-md:inset-x-3 max-md:bottom-3 max-md:top-auto max-md:z-20 max-md:max-h-[72vh] max-md:rounded-xl max-md:border max-md:bg-paper max-md:pl-0 max-md:shadow-[0_12px_36px_rgba(79,34,44,0.12)]"
+      className="sticky top-6 self-start border-l border-line-strong pl-6 max-md:fixed max-md:inset-x-3 max-md:bottom-3 max-md:top-auto max-md:z-20 max-md:max-h-[72vh] max-md:overflow-y-auto max-md:rounded-xl max-md:border max-md:bg-paper max-md:pl-0 max-md:shadow-[0_12px_36px_rgba(79,34,44,0.12)]"
       id="chunk-inspector"
     >
       <div className="sticky top-0 flex items-start justify-between gap-4 border-b border-line bg-canvas/95 pb-4 backdrop-blur-sm max-md:bg-paper/95 max-md:px-5 max-md:py-4">
@@ -420,7 +420,22 @@ function ChunkInspector({
   )
 }
 
-function EmptyChunkInspector({ hidden }: { hidden: boolean }) {
+function EmptyChunkInspector({
+  analyzing,
+  findings,
+  hidden,
+  pendingCount,
+}: {
+  analyzing: boolean
+  findings: Finding[]
+  hidden: boolean
+  pendingCount: number
+}) {
+  const highestRisk = findings.reduce<Finding | undefined>(
+    (highest, finding) => (!highest || finding.riskScore > highest.riskScore ? finding : highest),
+    undefined,
+  )
+
   return (
     <aside
       aria-hidden={hidden}
@@ -428,12 +443,30 @@ function EmptyChunkInspector({ hidden }: { hidden: boolean }) {
       id="chunk-inspector"
     >
       <FileTextIcon aria-hidden className="text-muted" size={21} weight="duotone" />
-      <h2 className="mt-4 mb-0 text-base font-semibold tracking-[-0.02em] text-muted">
-        No chunk selected
+      <h2 className="mt-4 mb-0 text-base font-semibold tracking-[-0.02em] text-ink">
+        {analyzing ? "Review in progress" : findings.length > 0 ? "Review queue" : "Review clear"}
       </h2>
       <p className="mt-2 mb-0 max-w-[260px] text-[13px] leading-relaxed text-muted/75">
-        Select a reviewed chunk to inspect its source, risk score, and signals.
+        {analyzing
+          ? "Select a resolved chunk to inspect it while the remaining records process."
+          : findings.length > 0
+            ? "Select a finding from the queue to inspect its evidence and record a decision."
+            : "No flagged chunks require a manual decision."}
       </p>
+      {!analyzing && findings.length > 0 && (
+        <dl className="mt-6 mb-0 border-y border-line py-4">
+          <div className="flex items-baseline justify-between gap-4">
+            <dt className="text-[11px] text-muted">Pending review</dt>
+            <dd className="m-0 font-mono text-sm font-semibold text-ink">{pendingCount}</dd>
+          </div>
+          <div className="mt-4">
+            <dt className="text-[11px] text-muted">Highest-risk source</dt>
+            <dd className="mt-1 mb-0 truncate text-[13px] font-medium text-ink">
+              {highestRisk?.source}
+            </dd>
+          </div>
+        </dl>
+      )}
     </aside>
   )
 }
@@ -464,11 +497,13 @@ function InvestigationBrief({
   events,
   findings,
   onSelect,
+  selectedId,
 }: {
   decisions: Record<string, ReviewDecision>
   events: ReviewEvent[]
   findings: Finding[]
   onSelect: (id: string) => void
+  selectedId: string | null
 }) {
   const categoryCounts = new Map<string, number>()
 
@@ -583,22 +618,20 @@ function InvestigationBrief({
   }
 
   return (
-    <section className="mt-14 border-t-2 border-ink">
-      <header className="grid grid-cols-12 gap-x-8 border-b border-line py-6 max-md:gap-y-5">
-        <div className="col-span-8 max-md:col-span-12">
-          <h2 className="m-0 text-[clamp(22px,2.4vw,32px)] leading-none font-medium tracking-[-0.04em] text-ink">
+    <section className="mt-12 border-t-2 border-ink">
+      <header className="flex items-end justify-between gap-6 border-b border-line py-5 max-sm:flex-col max-sm:items-start">
+        <div>
+          <h2 className="m-0 text-[clamp(21px,2vw,28px)] leading-none font-medium tracking-[-0.04em] text-ink">
             {findings.length > 0 ? "Priority review" : "Review clear"}
           </h2>
-          <p className="mt-3 mb-0 max-w-[680px] text-[14px] leading-relaxed text-muted">
+          <p className="mt-2.5 mb-0 max-w-[580px] text-[13px] leading-relaxed text-muted">
             {findings.length === 0
               ? `All ${events.length.toLocaleString()} chunks cleared the current screening thresholds.`
               : `${findings.length.toLocaleString()} of ${events.length.toLocaleString()} chunks need review${flaggedExposure > 0 ? `, representing ${formatCompactCurrency(flaggedExposure)} in identified exposure` : ""}.`}
           </p>
+          <p className="mt-1.5 mb-0 text-[11px] font-medium text-ink">{assessment}</p>
         </div>
-        <div className="col-span-4 flex flex-col items-end justify-end gap-3 max-md:col-span-12 max-md:items-start">
-          <p className="m-0 text-right text-[12px] leading-snug font-medium text-ink max-md:text-left">
-            {assessment}
-          </p>
+        <div className="shrink-0">
           <button
             className={`inline-flex min-h-9 shrink-0 cursor-pointer items-center gap-2 border border-line-strong bg-transparent px-3 text-[11px] font-semibold text-ink hover:border-ink ${focusRing}`}
             onClick={exportReport}
@@ -637,7 +670,8 @@ function InvestigationBrief({
 
             return (
               <button
-                className={`grid w-full cursor-pointer grid-cols-[44px_minmax(0,1.6fr)_minmax(140px,0.8fr)_100px_72px_104px] items-center gap-x-4 border-0 border-b border-line bg-transparent py-4 text-left hover:bg-paper/70 max-lg:grid-cols-[36px_minmax(0,1.4fr)_minmax(120px,0.8fr)_72px_92px] max-sm:grid-cols-[32px_minmax(0,1fr)_auto] max-sm:gap-x-3 ${focusRing}`}
+                className={`grid w-full cursor-pointer grid-cols-[44px_minmax(0,1.6fr)_minmax(140px,0.8fr)_100px_72px_104px] items-center gap-x-4 border-0 border-b border-l-2 border-b-line py-4 pl-3 text-left hover:bg-paper/70 max-lg:grid-cols-[36px_minmax(0,1.4fr)_minmax(120px,0.8fr)_72px_92px] max-sm:grid-cols-[32px_minmax(0,1fr)_auto] max-sm:gap-x-3 ${selectedId === finding.id ? "border-l-burgundy bg-paper/80" : "border-l-transparent bg-transparent"} ${focusRing}`}
+                aria-pressed={selectedId === finding.id}
                 key={finding.id}
                 onClick={() => onSelect(finding.id)}
                 type="button"
@@ -650,7 +684,9 @@ function InvestigationBrief({
                     {finding.title}
                   </span>
                   <span className="mt-1 block truncate text-[11px] text-muted">
-                    {finding.factors[0]?.label ?? categoryNames[finding.category] ?? "Review evidence"}
+                    {finding.factors[0]?.label ??
+                      categoryNames[finding.category] ??
+                      "Review evidence"}
                   </span>
                 </span>
                 <span className="min-w-0 max-sm:hidden">
@@ -718,6 +754,10 @@ function ChunkGrid({
     { clear: 0, suspicious: 0, fraud: 0 },
   )
   const valueReviewed = events.reduce((sum, event) => sum + (event.amount ?? 0), 0)
+  const pendingCount = findings.reduce(
+    (count, finding) => count + (decisions[finding.id] ? 0 : 1),
+    0,
+  )
   const statistics = [
     { label: "Value reviewed", value: formatCompactCurrency(valueReviewed), tone: "text-ink" },
     { label: "Cleared", value: counts.clear.toLocaleString(), tone: "text-ink" },
@@ -732,18 +772,6 @@ function ChunkGrid({
     findings.length === 0
       ? "No concerns surfaced"
       : `${findings.length.toLocaleString()} ${findings.length === 1 ? "chunk needs" : "chunks need"} attention`
-
-  function selectFinding(id: string) {
-    setSelectedId(id)
-    if (window.matchMedia("(min-width: 768px)").matches) {
-      const behavior = window.matchMedia("(prefers-reduced-motion: reduce)").matches
-        ? "auto"
-        : "smooth"
-      requestAnimationFrame(() =>
-        document.getElementById("chunk-inspector")?.scrollIntoView({ behavior, block: "start" }),
-      )
-    }
-  }
 
   return (
     <>
@@ -834,6 +862,16 @@ function ChunkGrid({
                 )
               })}
             </div>
+
+            {!analyzing && events.length > 0 && (
+              <InvestigationBrief
+                decisions={decisions}
+                events={events}
+                findings={findings}
+                onSelect={setSelectedId}
+                selectedId={selectedId}
+              />
+            )}
           </div>
 
           <div className="col-span-4 max-lg:col-span-5 max-md:col-span-12">
@@ -850,19 +888,15 @@ function ChunkGrid({
                 }
               />
             ) : (
-              <EmptyChunkInspector hidden={preparing} />
+              <EmptyChunkInspector
+                analyzing={analyzing}
+                findings={findings}
+                hidden={preparing}
+                pendingCount={pendingCount}
+              />
             )}
           </div>
         </div>
-
-        {!analyzing && events.length > 0 && (
-          <InvestigationBrief
-            decisions={decisions}
-            events={events}
-            findings={findings}
-            onSelect={selectFinding}
-          />
-        )}
       </main>
     </>
   )
