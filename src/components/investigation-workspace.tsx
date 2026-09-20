@@ -281,10 +281,10 @@ function ChunkInspector({
   return (
     <aside
       aria-label={`Details for chunk ${index + 1}`}
-      className="sticky top-6 max-h-[calc(100vh-118px)] self-start overflow-y-auto rounded-xl border border-line-strong bg-paper shadow-[0_12px_36px_rgba(79,34,44,0.08)] max-md:fixed max-md:inset-x-3 max-md:bottom-3 max-md:top-auto max-md:z-20 max-md:max-h-[72vh]"
+      className="sticky top-6 max-h-[calc(100vh-118px)] self-start overflow-y-auto border-l border-line-strong pl-6 max-md:fixed max-md:inset-x-3 max-md:bottom-3 max-md:top-auto max-md:z-20 max-md:max-h-[72vh] max-md:rounded-xl max-md:border max-md:bg-paper max-md:pl-0 max-md:shadow-[0_12px_36px_rgba(79,34,44,0.12)]"
       id="chunk-inspector"
     >
-      <div className="sticky top-0 flex items-start justify-between gap-4 border-b border-line bg-paper/95 px-5 py-4 backdrop-blur-sm">
+      <div className="sticky top-0 flex items-start justify-between gap-4 border-b border-line bg-canvas/95 pb-4 backdrop-blur-sm max-md:bg-paper/95 max-md:px-5 max-md:py-4">
         <div>
           <p className="m-0 font-mono text-[11px] text-muted">Chunk {index + 1}</p>
           <h2 className="mt-1 mb-0 text-lg leading-tight font-semibold tracking-[-0.025em] text-ink">
@@ -301,7 +301,7 @@ function ChunkInspector({
         </button>
       </div>
 
-      <div className="space-y-6 p-5">
+      <div className="space-y-6 pt-5 max-md:p-5">
         <div className="flex items-center justify-between gap-4">
           <span className={`text-sm font-semibold ${stateTextColors[state]}`}>
             {stateLabels[state]}
@@ -424,13 +424,11 @@ function EmptyChunkInspector({ hidden }: { hidden: boolean }) {
   return (
     <aside
       aria-hidden={hidden}
-      className={`sticky top-6 min-h-[280px] self-start rounded-xl border border-line bg-paper/45 p-6 max-md:hidden ${hidden ? "invisible" : ""}`}
+      className={`sticky top-6 min-h-[280px] self-start border-l border-line-strong px-6 pt-2 max-md:hidden ${hidden ? "invisible" : ""}`}
       id="chunk-inspector"
     >
-      <div className="grid size-10 place-items-center rounded-lg border border-line bg-paper text-muted">
-        <FileTextIcon aria-hidden size={19} weight="duotone" />
-      </div>
-      <h2 className="mt-5 mb-0 text-base font-semibold tracking-[-0.02em] text-muted">
+      <FileTextIcon aria-hidden className="text-muted" size={21} weight="duotone" />
+      <h2 className="mt-4 mb-0 text-base font-semibold tracking-[-0.02em] text-muted">
         No chunk selected
       </h2>
       <p className="mt-2 mb-0 max-w-[260px] text-[13px] leading-relaxed text-muted/75">
@@ -465,22 +463,20 @@ function InvestigationBrief({
   decisions,
   events,
   findings,
+  onSelect,
 }: {
   decisions: Record<string, ReviewDecision>
   events: ReviewEvent[]
   findings: Finding[]
+  onSelect: (id: string) => void
 }) {
   const categoryCounts = new Map<string, number>()
-  const sourceCounts = new Map<string, number>()
 
   findings.forEach((finding) => {
     categoryCounts.set(finding.category, (categoryCounts.get(finding.category) ?? 0) + 1)
-    sourceCounts.set(finding.source, (sourceCounts.get(finding.source) ?? 0) + 1)
   })
 
   const rankedCategories = Array.from(categoryCounts.entries()).sort((a, b) => b[1] - a[1])
-  const topCategory = rankedCategories[0]
-  const topSource = Array.from(sourceCounts.entries()).sort((a, b) => b[1] - a[1])[0]
   const criticalCount = findings.filter((finding) => finding.riskLevel === "critical").length
   const flaggedRate = events.length > 0 ? findings.length / events.length : 0
   const flaggedExposure = findings.reduce((sum, finding) => sum + (finding.amount ?? 0), 0)
@@ -490,12 +486,6 @@ function InvestigationBrief({
       : criticalCount > 0 || flaggedRate >= 0.25
         ? "Elevated risk concentration"
         : "Targeted exceptions merit review"
-  const assessmentTone =
-    findings.length === 0
-      ? "border-[#b8d8c6] bg-clear-soft text-clear"
-      : criticalCount > 0 || flaggedRate >= 0.25
-        ? "border-[#efbeb5] bg-[#f8e3df] text-[#a33829]"
-        : "border-[#e5c99d] bg-[#f8eedf] text-[#8a551e]"
   const actions = rankedCategories
     .map(([category]) => categoryActions[category])
     .filter((action): action is string => Boolean(action))
@@ -513,6 +503,7 @@ function InvestigationBrief({
   ).length
   const safeCount = Object.values(decisions).filter((decision) => decision.status === "safe").length
   const pendingCount = Math.max(0, findings.length - confirmedCount - safeCount)
+  const rankedFindings = [...findings].sort((a, b) => b.riskScore - a.riskScore)
 
   function exportReport() {
     const headers = [
@@ -592,24 +583,24 @@ function InvestigationBrief({
   }
 
   return (
-    <section className="mt-10 overflow-hidden rounded-xl border border-line-strong bg-paper shadow-[0_12px_36px_rgba(79,34,44,0.05)]">
-      <header className="flex items-center justify-between gap-5 px-6 py-5 max-sm:items-start max-sm:px-5">
-        <div>
-          <h2 className="m-0 text-xl font-semibold tracking-[-0.035em] text-ink">
-            Investigation brief
+    <section className="mt-14 border-t-2 border-ink">
+      <header className="grid grid-cols-12 gap-x-8 border-b border-line py-6 max-md:gap-y-5">
+        <div className="col-span-8 max-md:col-span-12">
+          <h2 className="m-0 text-[clamp(22px,2.4vw,32px)] leading-none font-medium tracking-[-0.04em] text-ink">
+            {findings.length > 0 ? "Priority review" : "Review clear"}
           </h2>
-          <p className="mt-1.5 mb-0 text-[13px] text-muted">
-            A portfolio-level reading of the completed review.
+          <p className="mt-3 mb-0 max-w-[680px] text-[14px] leading-relaxed text-muted">
+            {findings.length === 0
+              ? `All ${events.length.toLocaleString()} chunks cleared the current screening thresholds.`
+              : `${findings.length.toLocaleString()} of ${events.length.toLocaleString()} chunks need review${flaggedExposure > 0 ? `, representing ${formatCompactCurrency(flaggedExposure)} in identified exposure` : ""}.`}
           </p>
         </div>
-        <div className="flex shrink-0 items-center gap-2 max-sm:flex-col max-sm:items-end">
-          <span
-            className={`rounded-full border px-3 py-1.5 text-[11px] font-semibold max-sm:max-w-[130px] max-sm:text-center ${assessmentTone}`}
-          >
+        <div className="col-span-4 flex flex-col items-end justify-end gap-3 max-md:col-span-12 max-md:items-start">
+          <p className="m-0 text-right text-[12px] leading-snug font-medium text-ink max-md:text-left">
             {assessment}
-          </span>
+          </p>
           <button
-            className={`inline-flex min-h-8 cursor-pointer items-center gap-1.5 rounded-md border border-line-strong bg-white px-3 text-[11px] font-semibold text-ink ${focusRing}`}
+            className={`inline-flex min-h-9 shrink-0 cursor-pointer items-center gap-2 border border-line-strong bg-transparent px-3 text-[11px] font-semibold text-ink hover:border-ink ${focusRing}`}
             onClick={exportReport}
             type="button"
           >
@@ -619,54 +610,70 @@ function InvestigationBrief({
         </div>
       </header>
 
-      <div className="border-t border-line">
-        <div className="p-6 max-sm:p-5">
-          <h3 className="m-0 text-sm font-semibold text-ink">What the evidence suggests</h3>
-          <p className="mt-3 mb-0 text-[14px] leading-relaxed text-muted">
-            {findings.length === 0
-              ? `All ${events.length.toLocaleString()} reviewed chunks cleared the current screening thresholds. No specific fraud pattern stands out in this pass.`
-              : `${findings.length.toLocaleString()} of ${events.length.toLocaleString()} chunks were flagged (${Math.round(flaggedRate * 100)}%).${flaggedExposure > 0 ? ` They represent ${formatCompactCurrency(flaggedExposure)} in identified exposure.` : ""}`}
-          </p>
-
-          {findings.length > 0 && (
-            <dl className="mt-5 mb-0 space-y-4 border-t border-line pt-5">
-              <div>
-                <dt className="text-[11px] text-muted">Dominant pattern</dt>
-                <dd className="mt-1 mb-0 text-sm font-medium text-ink">
-                  {topCategory
-                    ? `${topCategory[1]} finding${topCategory[1] === 1 ? "" : "s"} involve ${categoryNames[topCategory[0]] ?? "the same risk pattern"}.`
-                    : "No dominant pattern."}
-                </dd>
-              </div>
-              <div>
-                <dt className="text-[11px] text-muted">Concentration</dt>
-                <dd className="mt-1 mb-0 text-sm font-medium text-ink">
-                  {topSource && topSource[1] > 1
-                    ? `${topSource[0]} contains ${topSource[1]} flagged chunks.`
-                    : `Flags span ${sourceCounts.size} source document${sourceCounts.size === 1 ? "" : "s"}.`}
-                </dd>
-              </div>
-            </dl>
-          )}
-        </div>
-      </div>
-
       {findings.length > 0 && (
-        <dl className="m-0 grid grid-cols-3 border-t border-line bg-canvas/45 max-sm:grid-cols-1">
-          {[
-            { label: "Confirmed concerns", value: confirmedCount, tone: "text-[#a33829]" },
-            { label: "Marked safe", value: safeCount, tone: "text-clear" },
-            { label: "Awaiting review", value: pendingCount, tone: "text-ink" },
-          ].map((item) => (
-            <div
-              className="flex items-baseline justify-between border-r border-line px-6 py-4 last:border-r-0 max-sm:border-r-0 max-sm:border-b max-sm:last:border-b-0"
-              key={item.label}
-            >
-              <dt className="text-[12px] text-muted">{item.label}</dt>
-              <dd className={`m-0 font-mono text-lg font-semibold ${item.tone}`}>{item.value}</dd>
-            </div>
-          ))}
-        </dl>
+        <div>
+          <div className="grid grid-cols-[44px_minmax(0,1.6fr)_minmax(140px,0.8fr)_100px_72px_104px] gap-x-4 border-b border-line py-3 text-[11px] text-muted max-lg:grid-cols-[36px_minmax(0,1.4fr)_minmax(120px,0.8fr)_72px_92px] max-lg:[&>*:nth-child(4)]:hidden max-sm:hidden">
+            <span>Rank</span>
+            <span>Finding</span>
+            <span>Source</span>
+            <span className="text-right">Amount</span>
+            <span className="text-right">Risk</span>
+            <span className="text-right">Status</span>
+          </div>
+          {rankedFindings.map((finding, index) => {
+            const decision = decisions[finding.id]
+            const status =
+              decision?.status === "confirmed"
+                ? "Confirmed"
+                : decision?.status === "safe"
+                  ? "Safe"
+                  : "Pending"
+            const statusTone =
+              decision?.status === "confirmed"
+                ? "text-[#a33829]"
+                : decision?.status === "safe"
+                  ? "text-clear"
+                  : "text-muted"
+
+            return (
+              <button
+                className={`grid w-full cursor-pointer grid-cols-[44px_minmax(0,1.6fr)_minmax(140px,0.8fr)_100px_72px_104px] items-center gap-x-4 border-0 border-b border-line bg-transparent py-4 text-left hover:bg-paper/70 max-lg:grid-cols-[36px_minmax(0,1.4fr)_minmax(120px,0.8fr)_72px_92px] max-sm:grid-cols-[32px_minmax(0,1fr)_auto] max-sm:gap-x-3 ${focusRing}`}
+                key={finding.id}
+                onClick={() => onSelect(finding.id)}
+                type="button"
+              >
+                <span className="font-mono text-[11px] text-muted">
+                  {String(index + 1).padStart(2, "0")}
+                </span>
+                <span className="min-w-0">
+                  <span className="block truncate text-[13px] font-semibold text-ink">
+                    {finding.title}
+                  </span>
+                  <span className="mt-1 block truncate text-[11px] text-muted">
+                    {finding.factors[0]?.label ?? categoryNames[finding.category] ?? "Review evidence"}
+                  </span>
+                </span>
+                <span className="min-w-0 max-sm:hidden">
+                  <span className="block truncate text-[12px] text-ink">{finding.source}</span>
+                  <span className="mt-1 block truncate font-mono text-[10px] text-muted">
+                    {finding.location}
+                  </span>
+                </span>
+                <span className="text-right font-mono text-[12px] text-ink max-lg:hidden">
+                  {finding.amount === null ? "\u2014" : formatCompactCurrency(finding.amount)}
+                </span>
+                <span className="text-right font-mono text-[12px] font-semibold text-[#a33829]">
+                  {Math.round(finding.riskScore * 100)}%
+                </span>
+                <span
+                  className={`text-right text-[11px] font-medium max-sm:col-start-2 max-sm:mt-2 max-sm:text-left ${statusTone}`}
+                >
+                  {status}
+                </span>
+              </button>
+            )
+          })}
+        </div>
       )}
     </section>
   )
@@ -712,15 +719,31 @@ function ChunkGrid({
   )
   const valueReviewed = events.reduce((sum, event) => sum + (event.amount ?? 0), 0)
   const statistics = [
-    { label: "Value reviewed", value: formatCompactCurrency(valueReviewed), color: "bg-ink" },
-    { label: "Clear", value: counts.clear.toLocaleString(), color: "bg-[#22C55E]" },
+    { label: "Value reviewed", value: formatCompactCurrency(valueReviewed), tone: "text-ink" },
+    { label: "Cleared", value: counts.clear.toLocaleString(), tone: "text-ink" },
     {
       label: "Suspicious",
       value: counts.suspicious.toLocaleString(),
-      color: "bg-[#F59E0B]",
+      tone: "text-[#A14E08]",
     },
-    { label: "Fraud", value: counts.fraud.toLocaleString(), color: "bg-[#EF4444]" },
+    { label: "High risk", value: counts.fraud.toLocaleString(), tone: "text-[#B91C1C]" },
   ]
+  const completionTitle =
+    findings.length === 0
+      ? "No concerns surfaced"
+      : `${findings.length.toLocaleString()} ${findings.length === 1 ? "chunk needs" : "chunks need"} attention`
+
+  function selectFinding(id: string) {
+    setSelectedId(id)
+    if (window.matchMedia("(min-width: 768px)").matches) {
+      const behavior = window.matchMedia("(prefers-reduced-motion: reduce)").matches
+        ? "auto"
+        : "smooth"
+      requestAnimationFrame(() =>
+        document.getElementById("chunk-inspector")?.scrollIntoView({ behavior, block: "start" }),
+      )
+    }
+  }
 
   return (
     <>
@@ -730,34 +753,36 @@ function ChunkGrid({
         aria-live="polite"
         className="min-h-[calc(100vh-70px)] p-8 max-sm:min-h-[calc(100vh-62px)] max-sm:p-4"
       >
-        <header className="mb-8 flex items-end justify-between gap-10 border-b border-line pb-6 max-md:flex-col max-md:items-start max-md:gap-6">
-          <div>
+        <header className="mb-8 grid grid-cols-12 gap-x-8 max-md:gap-y-4">
+          <div className="col-span-8 max-md:col-span-12">
             <h1 className="m-0 text-[clamp(28px,3vw,42px)] leading-none font-medium tracking-[-0.045em] text-ink">
               {preparing
                 ? preparationCopy?.title
                 : analyzing
                   ? "Reviewing document chunks"
-                  : "Analysis complete"}
+                  : completionTitle}
             </h1>
-            <p className="mt-3 mb-0 text-sm text-muted">
-              {preparing
-                ? preparationCopy?.detail
-                : total > 0
-                  ? reviewStatus
-                  : "Preparing document chunks…"}
-            </p>
           </div>
+          <p className="col-span-4 m-0 self-end text-right text-sm leading-relaxed text-muted max-md:col-span-12 max-md:text-left">
+            {preparing
+              ? preparationCopy?.detail
+              : total > 0
+                ? reviewStatus
+                : "Preparing document chunks…"}
+          </p>
 
           <dl
-            className={`m-0 flex shrink-0 gap-9 max-sm:grid max-sm:w-full max-sm:grid-cols-2 max-sm:gap-x-8 max-sm:gap-y-5 ${preparing ? "invisible" : ""}`}
+            className={`col-span-12 mt-7 grid grid-cols-4 border-y border-line max-sm:mt-5 max-sm:grid-cols-2 ${preparing ? "invisible" : ""}`}
           >
             {statistics.map((statistic) => (
-              <div className="flex min-w-[72px] flex-col gap-1.5" key={statistic.label}>
-                <dt className="flex items-center gap-2 text-[11px] text-muted">
-                  <span className={`size-2 rounded-[2px] ${statistic.color}`} />
-                  {statistic.label}
-                </dt>
-                <dd className="m-0 font-mono text-2xl leading-none font-medium tracking-[-0.05em] text-ink">
+              <div
+                className="flex min-h-14 items-baseline justify-between gap-3 border-r border-line px-4 py-4 first:pl-0 last:border-r-0 last:pr-0 max-sm:px-3 max-sm:first:pl-3 max-sm:last:pr-3 max-sm:[&:nth-child(2)]:border-r-0 max-sm:[&:nth-child(n+3)]:border-t"
+                key={statistic.label}
+              >
+                <dt className="text-[11px] text-muted">{statistic.label}</dt>
+                <dd
+                  className={`m-0 font-mono text-lg leading-none font-medium tracking-[-0.04em] ${statistic.tone}`}
+                >
                   {statistic.value}
                 </dd>
               </div>
@@ -766,9 +791,9 @@ function ChunkGrid({
         </header>
 
         <div
-          className={`analysis-stage analysis-stage-${phase} relative grid min-h-[210px] grid-cols-[minmax(0,1fr)_420px] items-start gap-8 max-lg:grid-cols-[minmax(0,1fr)_380px] max-md:grid-cols-1`}
+          className={`analysis-stage analysis-stage-${phase} relative grid min-h-[210px] grid-cols-12 items-start gap-x-8`}
         >
-          <div className="min-w-0">
+          <div className="col-span-8 min-w-0 max-lg:col-span-7 max-md:col-span-12">
             <div className="flex flex-wrap content-start gap-2 max-sm:gap-1.5">
               {Array.from({ length: total }, (_, index) => {
                 const event = events[index]
@@ -809,28 +834,35 @@ function ChunkGrid({
                 )
               })}
             </div>
-
-            {!analyzing && events.length > 0 && (
-              <InvestigationBrief decisions={decisions} events={events} findings={findings} />
-            )}
           </div>
 
-          {selectedEvent ? (
-            <ChunkInspector
-              decision={decisions[selectedEvent.id]}
-              event={selectedEvent}
-              finding={selectedFinding}
-              index={selectedIndex}
-              key={selectedEvent.id}
-              onClose={() => setSelectedId(null)}
-              onDecide={(decision) =>
-                setDecisions((current) => ({ ...current, [selectedEvent.id]: decision }))
-              }
-            />
-          ) : (
-            <EmptyChunkInspector hidden={preparing} />
-          )}
+          <div className="col-span-4 max-lg:col-span-5 max-md:col-span-12">
+            {selectedEvent ? (
+              <ChunkInspector
+                decision={decisions[selectedEvent.id]}
+                event={selectedEvent}
+                finding={selectedFinding}
+                index={selectedIndex}
+                key={selectedEvent.id}
+                onClose={() => setSelectedId(null)}
+                onDecide={(decision) =>
+                  setDecisions((current) => ({ ...current, [selectedEvent.id]: decision }))
+                }
+              />
+            ) : (
+              <EmptyChunkInspector hidden={preparing} />
+            )}
+          </div>
         </div>
+
+        {!analyzing && events.length > 0 && (
+          <InvestigationBrief
+            decisions={decisions}
+            events={events}
+            findings={findings}
+            onSelect={selectFinding}
+          />
+        )}
       </main>
     </>
   )
