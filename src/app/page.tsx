@@ -1,3 +1,5 @@
+import FishyApp from "~/components/fishy-app"
+
 export default function Home() {
-  return null
+  return <FishyApp />
 }

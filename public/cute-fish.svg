@@ -1,0 +1,24 @@
+<svg xmlns="http://www.w3.org/2000/svg" viewBox="0 0 64 64" role="img" aria-labelledby="title">
+  <title id="title">Cute koi viewed from above</title>
+  <circle cx="32" cy="32" r="32" fill="#F5F1F2"/>
+  <defs>
+    <mask id="koi-cutouts">
+      <rect width="64" height="64" fill="#fff"/>
+      <circle cx="26" cy="17" r="3.4" fill="#000"/>
+      <circle cx="38" cy="17" r="3.4" fill="#000"/>
+      <path d="M27 25c3.2 2.5 6.8 2.5 10 0" fill="none" stroke="#000" stroke-linecap="round" stroke-width="2.8"/>
+    </mask>
+  </defs>
+  <g transform="translate(4 4) scale(.875)">
+    <g fill="#4F222C" mask="url(#koi-cutouts)">
+      <path d="M31 43c-7 2-15 7-21 15 8 1 16-1 22-6 6 5 14 7 22 6-6-8-14-13-21-15Z"/>
+      <path d="M22 27C13 29 8 34 7 41c7 0 13-3 17-8l1-5-3-1ZM42 27c9 2 14 7 15 14-7 0-13-3-17-8l-1-5 3-1Z"/>
+      <path d="M32 5c-10 0-15 9-14 21 1 10 6 18 14 24 8-6 13-14 14-24C47 14 42 5 32 5Z"/>
+    </g>
+    <g fill="#4F222C">
+      <circle cx="26" cy="17" r="1.45"/>
+      <circle cx="38" cy="17" r="1.45"/>
+    </g>
+    <path d="M17 52c4-1 8-2 12-5M47 52c-4-1-8-2-12-5M11 37c4-1 7-3 10-6M53 37c-4-1-7-3-10-6" fill="none" stroke="#4F222C" stroke-linecap="round" stroke-width="2" opacity=".45"/>
+  </g>
+</svg>

@@ -1,0 +1,8 @@
+<svg xmlns="http://www.w3.org/2000/svg" viewBox="0 0 64 64" role="img" aria-labelledby="title">
+  <title id="title">Cute fish</title>
+  <rect width="64" height="64" fill="#F5F1F2"/>
+  <path fill="#4F222C" d="M56.9 18.3a2.7 2.7 0 0 0-3.1.5l-7.2 6.5C42.8 18.9 35.8 15 28 15 16.4 15 7 22.6 7 32s9.4 17 21 17c7.8 0 14.8-3.9 18.6-10.3l7.2 6.5a2.7 2.7 0 0 0 4.5-2V20.8c0-1.1-.5-2-1.4-2.5Z"/>
+  <circle cx="22" cy="27" r="3.5" fill="#fff"/>
+  <circle cx="22" cy="27" r="1.5" fill="#4F222C"/>
+  <path fill="none" stroke="#fff" stroke-linecap="round" stroke-width="3" d="M20 38c3.7 3 8.3 3 12 0"/>
+</svg>
