@@ -24,12 +24,9 @@ const REVEAL_DELAYS = [0.02, 0.18, 0.06, 0.28, 0, 0.14, 0.04, 0.24, 0.09, 0.32, 
 const SPRING_NORMALIZER = 1 - Math.exp(-SPRING_STRENGTH)
 
 function springStep(progress: number) {
-  const half = (value: number) =>
-    (1 - Math.exp(-SPRING_STRENGTH * value)) / SPRING_NORMALIZER
+  const half = (value: number) => (1 - Math.exp(-SPRING_STRENGTH * value)) / SPRING_NORMALIZER
 
-  return progress < 0.5
-    ? 0.5 * half(2 * progress)
-    : 1 - 0.5 * half(2 * (1 - progress))
+  return progress < 0.5 ? 0.5 * half(2 * progress) : 1 - 0.5 * half(2 * (1 - progress))
 }
 
 function mulberry32(seed: number) {
@@ -70,7 +67,10 @@ export class DatamoshEngine {
   private edges: number[] = []
   private strip: number[] = []
 
-  constructor(private host: HTMLElement, seed = 1) {
+  constructor(
+    private host: HTMLElement,
+    seed = 1,
+  ) {
     this.canvas = document.createElement("canvas")
     this.canvas.className = "block size-full"
     this.canvas.setAttribute("aria-hidden", "true")

@@ -221,7 +221,9 @@ function EvidenceTrace({ event }: { event: ReviewEvent }) {
     event.vendor,
     event.date,
     event.amount === null ? null : event.amount.toFixed(2),
-    event.amount === null ? null : event.amount.toLocaleString("en-US", { maximumFractionDigits: 2 }),
+    event.amount === null
+      ? null
+      : event.amount.toLocaleString("en-US", { maximumFractionDigits: 2 }),
   ]
     .filter((term): term is string => Boolean(term))
     .sort((a, b) => b.length - a.length)
@@ -232,10 +234,7 @@ function EvidenceTrace({ event }: { event: ReviewEvent }) {
     <blockquote className="m-0 rounded-lg border border-line bg-canvas/70 px-4 py-3 font-mono text-[11px] leading-[1.75] text-ink">
       {parts.map((part, index) =>
         terms.some((term) => term.toLowerCase() === part.toLowerCase()) ? (
-          <mark
-            className="rounded-[3px] bg-[#ead2a8] px-0.5 text-ink"
-            key={`${part}-${index}`}
-          >
+          <mark className="rounded-[3px] bg-[#ead2a8] px-0.5 text-ink" key={`${part}-${index}`}>
             {part}
           </mark>
         ) : (
@@ -373,7 +372,10 @@ function ChunkInspector({
                 </span>
               )}
             </div>
-            <label className="mt-3 block text-[11px] text-muted" htmlFor={`review-note-${event.id}`}>
+            <label
+              className="mt-3 block text-[11px] text-muted"
+              htmlFor={`review-note-${event.id}`}
+            >
               Review note <span className="text-muted/70">(optional)</span>
             </label>
             <textarea
@@ -548,7 +550,28 @@ function InvestigationBrief({
             categoryActions[finding.category] ?? actions[0],
           ]
         })
-      : [[events.length, 0, "0.00", 0, 0, 0, "No findings", "", "", "", "", "", "", "", "", "", "", actions[0]]]
+      : [
+          [
+            events.length,
+            0,
+            "0.00",
+            0,
+            0,
+            0,
+            "No findings",
+            "",
+            "",
+            "",
+            "",
+            "",
+            "",
+            "",
+            "",
+            "",
+            "",
+            actions[0],
+          ],
+        ]
     const csv = [headers, ...rows].map((row) => row.map(csvCell).join(",")).join("\n")
     const url = URL.createObjectURL(new Blob([csv], { type: "text/csv;charset=utf-8" }))
     const link = document.createElement("a")
@@ -616,7 +639,6 @@ function InvestigationBrief({
             </dl>
           )}
         </div>
-
       </div>
 
       {findings.length > 0 && (
@@ -636,7 +658,6 @@ function InvestigationBrief({
           ))}
         </dl>
       )}
-
     </section>
   )
 }
@@ -692,106 +713,106 @@ function ChunkGrid({
         aria-live="polite"
         className="min-h-[calc(100vh-70px)] p-8 max-sm:min-h-[calc(100vh-62px)] max-sm:p-4"
       >
-      <header className="mb-8 flex items-end justify-between gap-10 border-b border-line pb-6 max-md:flex-col max-md:items-start max-md:gap-6">
-        <div>
-          <h1 className="m-0 text-[clamp(28px,3vw,42px)] leading-none font-medium tracking-[-0.045em] text-ink">
-            {preparing
-              ? preparationCopy?.title
-              : analyzing
-                ? "Reviewing document chunks"
-                : "Analysis complete"}
-          </h1>
-          <p className="mt-3 mb-0 text-sm text-muted">
-            {preparing
-              ? preparationCopy?.detail
-              : total > 0
-                ? `${events.length.toLocaleString()} of ${total.toLocaleString()} chunks reviewed`
-                : "Preparing document chunks…"}
-          </p>
-        </div>
-
-        <dl
-          className={`m-0 flex shrink-0 gap-9 max-sm:grid max-sm:w-full max-sm:grid-cols-2 max-sm:gap-x-8 max-sm:gap-y-5 ${preparing ? "invisible" : ""}`}
-        >
-          {statistics.map((statistic) => (
-            <div className="flex min-w-[72px] flex-col gap-1.5" key={statistic.label}>
-              <dt className="flex items-center gap-2 text-[11px] text-muted">
-                <span className={`size-2 rounded-[2px] ${statistic.color}`} />
-                {statistic.label}
-              </dt>
-              <dd className="m-0 font-mono text-2xl leading-none font-medium tracking-[-0.05em] text-ink">
-                {statistic.value}
-              </dd>
-            </div>
-          ))}
-        </dl>
-      </header>
-
-      <div
-        className={`analysis-stage analysis-stage-${phase} relative grid min-h-[210px] grid-cols-[minmax(0,1fr)_420px] items-start gap-8 max-lg:grid-cols-[minmax(0,1fr)_380px] max-md:grid-cols-1`}
-      >
-        <div className="min-w-0">
-          <div className="flex flex-wrap content-start gap-2 max-sm:gap-1.5">
-            {Array.from({ length: total }, (_, index) => {
-              const event = events[index]
-              const state = getChunkState(event)
-              const label = event
-                ? `${event.source}, ${event.location}: ${stateLabels[state]}`
-                : `Chunk ${index + 1}: processing`
-              const animationStyle = {
-                "--chunk-delay": `${Math.min(index * 12, 720)}ms`,
-              } as CSSProperties
-
-              return event ? (
-                <button
-                  aria-controls="chunk-inspector"
-                  aria-expanded={selectedId === event.id}
-                  aria-label={`Open ${label}`}
-                  className={`chunk-cell-resolved relative size-9 shrink-0 cursor-pointer rounded-lg border p-0 hover:brightness-95 ${chunkColors[state]} ${focusRing} max-sm:size-7 max-sm:rounded-md`}
-                  key={index}
-                  onClick={() => setSelectedId(event.id)}
-                  title={label}
-                  type="button"
-                >
-                  {decisions[event.id] && (
-                    <span
-                      aria-hidden
-                      className={`absolute -right-1 -bottom-1 size-2.5 rounded-full border-2 border-canvas ${decisions[event.id].status === "confirmed" ? "bg-[#8f3023]" : "bg-clear"}`}
-                    />
-                  )}
-                </button>
-              ) : (
-                <span
-                  aria-label={label}
-                  className={`relative size-9 shrink-0 rounded-lg border ${chunkColors[state]} ${preparing ? "chunk-transfer" : "chunk-cell-pending"} max-sm:size-7 max-sm:rounded-md`}
-                  key={index}
-                  style={animationStyle}
-                  title={label}
-                />
-              )
-            })}
+        <header className="mb-8 flex items-end justify-between gap-10 border-b border-line pb-6 max-md:flex-col max-md:items-start max-md:gap-6">
+          <div>
+            <h1 className="m-0 text-[clamp(28px,3vw,42px)] leading-none font-medium tracking-[-0.045em] text-ink">
+              {preparing
+                ? preparationCopy?.title
+                : analyzing
+                  ? "Reviewing document chunks"
+                  : "Analysis complete"}
+            </h1>
+            <p className="mt-3 mb-0 text-sm text-muted">
+              {preparing
+                ? preparationCopy?.detail
+                : total > 0
+                  ? `${events.length.toLocaleString()} of ${total.toLocaleString()} chunks reviewed`
+                  : "Preparing document chunks…"}
+            </p>
           </div>
 
-          {!analyzing && events.length > 0 && (
-            <InvestigationBrief decisions={decisions} events={events} findings={findings} />
-          )}
-        </div>
+          <dl
+            className={`m-0 flex shrink-0 gap-9 max-sm:grid max-sm:w-full max-sm:grid-cols-2 max-sm:gap-x-8 max-sm:gap-y-5 ${preparing ? "invisible" : ""}`}
+          >
+            {statistics.map((statistic) => (
+              <div className="flex min-w-[72px] flex-col gap-1.5" key={statistic.label}>
+                <dt className="flex items-center gap-2 text-[11px] text-muted">
+                  <span className={`size-2 rounded-[2px] ${statistic.color}`} />
+                  {statistic.label}
+                </dt>
+                <dd className="m-0 font-mono text-2xl leading-none font-medium tracking-[-0.05em] text-ink">
+                  {statistic.value}
+                </dd>
+              </div>
+            ))}
+          </dl>
+        </header>
 
-        {selectedEvent ? (
-          <ChunkInspector
-            decision={decisions[selectedEvent.id]}
-            event={selectedEvent}
-            finding={selectedFinding}
-            index={selectedIndex}
-            key={selectedEvent.id}
-            onClose={() => setSelectedId(null)}
-            onDecide={(decision) =>
-              setDecisions((current) => ({ ...current, [selectedEvent.id]: decision }))
-            }
-          />
-        ) : (
-          <EmptyChunkInspector hidden={preparing} />
-        )}
+        <div
+          className={`analysis-stage analysis-stage-${phase} relative grid min-h-[210px] grid-cols-[minmax(0,1fr)_420px] items-start gap-8 max-lg:grid-cols-[minmax(0,1fr)_380px] max-md:grid-cols-1`}
+        >
+          <div className="min-w-0">
+            <div className="flex flex-wrap content-start gap-2 max-sm:gap-1.5">
+              {Array.from({ length: total }, (_, index) => {
+                const event = events[index]
+                const state = getChunkState(event)
+                const label = event
+                  ? `${event.source}, ${event.location}: ${stateLabels[state]}`
+                  : `Chunk ${index + 1}: processing`
+                const animationStyle = {
+                  "--chunk-delay": `${Math.min(index * 12, 720)}ms`,
+                } as CSSProperties
+
+                return event ? (
+                  <button
+                    aria-controls="chunk-inspector"
+                    aria-expanded={selectedId === event.id}
+                    aria-label={`Open ${label}`}
+                    className={`chunk-cell-resolved relative size-9 shrink-0 cursor-pointer rounded-lg border p-0 hover:brightness-95 ${chunkColors[state]} ${focusRing} max-sm:size-7 max-sm:rounded-md`}
+                    key={index}
+                    onClick={() => setSelectedId(event.id)}
+                    title={label}
+                    type="button"
+                  >
+                    {decisions[event.id] && (
+                      <span
+                        aria-hidden
+                        className={`absolute -right-1 -bottom-1 size-2.5 rounded-full border-2 border-canvas ${decisions[event.id].status === "confirmed" ? "bg-[#8f3023]" : "bg-clear"}`}
+                      />
+                    )}
+                  </button>
+                ) : (
+                  <span
+                    aria-label={label}
+                    className={`relative size-9 shrink-0 rounded-lg border ${chunkColors[state]} ${preparing ? "chunk-transfer" : "chunk-cell-pending"} max-sm:size-7 max-sm:rounded-md`}
+                    key={index}
+                    style={animationStyle}
+                    title={label}
+                  />
+                )
+              })}
+            </div>
+
+            {!analyzing && events.length > 0 && (
+              <InvestigationBrief decisions={decisions} events={events} findings={findings} />
+            )}
+          </div>
+
+          {selectedEvent ? (
+            <ChunkInspector
+              decision={decisions[selectedEvent.id]}
+              event={selectedEvent}
+              finding={selectedFinding}
+              index={selectedIndex}
+              key={selectedEvent.id}
+              onClose={() => setSelectedId(null)}
+              onDecide={(decision) =>
+                setDecisions((current) => ({ ...current, [selectedEvent.id]: decision }))
+              }
+            />
+          ) : (
+            <EmptyChunkInspector hidden={preparing} />
+          )}
         </div>
       </main>
     </>
