@@ -18,7 +18,7 @@ const mono = IBM_Plex_Mono({
 export const metadata: Metadata = {
   title: "Fishy • Financial risk review",
   description: "Find suspicious financial records with confidence-aware analysis.",
-  icons: { icon: "/cute-fish.svg" },
+  icons: { icon: "/favicon.svg" },
 }
 
 export default function RootLayout({ children }: LayoutProps<"/">) {

@@ -1,13 +1,8 @@
 const PALETTE = [
-  "#fcfafa",
   "#4f222c",
-  "#ef4444",
-  "#eee1e4",
-  "#22c55e",
-  "#806b70",
-  "#f59e0b",
-  "#dfd4d7",
-  "#32151c",
+  "#843e4d",
+  "#b76c7c",
+  "#dcb2bb",
 ] as const
 
 const COLUMNS = 11
@@ -94,25 +89,10 @@ export class DatamoshEngine {
 
   private buildColors(seed: number) {
     const random = mulberry32(seed)
-    const white = 0
-    const darks = [1, 8]
-    const hues = [2, 3, 4, 5, 6, 7]
     const length = 61
-    let lastHue = -1
 
     for (let index = 0; index < length; index++) {
-      const roll = random()
-      let next: number
-
-      if (roll < 0.26) {
-        next = white
-      } else if (roll < 0.44) {
-        next = darks[Math.floor(random() * darks.length)]
-      } else {
-        next = hues[Math.floor(random() * hues.length)]
-        if (next === lastHue) next = hues[(hues.indexOf(next) + 1) % hues.length]
-        lastHue = next
-      }
+      let next = Math.floor(random() * PALETTE.length)
 
       if (index > 0 && next === this.strip[index - 1]) {
         next = pickDifferent(next, [this.strip[index - 1]])

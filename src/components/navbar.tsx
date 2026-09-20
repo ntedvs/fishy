@@ -1,4 +1,3 @@
-import Image from "next/image"
 import Link from "next/link"
 
 const focusRing =
@@ -8,10 +7,9 @@ export default function Navbar() {
   return (
     <header className="relative z-10 flex h-[70px] items-center justify-between border-b border-burgundy/12 bg-canvas/90 px-8 max-sm:h-[62px] max-sm:px-4">
       <Link
-        className={`flex items-center gap-2 text-[19px] font-semibold tracking-[-0.03em] text-burgundy ${focusRing}`}
+        className={`text-[19px] font-semibold tracking-[-0.03em] text-burgundy ${focusRing}`}
         href="/"
       >
-        <Image alt="" height={30} priority src="/cute-fish.svg" width={30} />
         <span>Fishy</span>
       </Link>
       <Link
