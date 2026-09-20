@@ -1,9 +1,4 @@
-const PALETTE = [
-  "#4f222c",
-  "#843e4d",
-  "#b76c7c",
-  "#dcb2bb",
-] as const
+const PALETTE = ["#4f222c", "#843e4d", "#b76c7c", "#dcb2bb"] as const
 
 const COLUMNS = 11
 const COLUMN_POWER = 1.65

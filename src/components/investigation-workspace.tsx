@@ -212,6 +212,16 @@ function formatCompactCurrency(amount: number) {
   }).format(amount)
 }
 
+function formatDuration(milliseconds: number) {
+  if (milliseconds < 1_000) return `${milliseconds}ms`
+  if (milliseconds < 60_000) return `${(milliseconds / 1_000).toFixed(1)}s`
+
+  const totalSeconds = Math.round(milliseconds / 1_000)
+  const minutes = Math.floor(totalSeconds / 60)
+  const seconds = totalSeconds % 60
+  return `${minutes}m ${seconds}s`
+}
+
 function escapeRegExp(value: string) {
   return value.replace(/[.*+?^${}()|[\]\\]/g, "\\$&")
 }
@@ -668,18 +678,25 @@ function ChunkGrid({
   findings,
   phase,
   recordsTotal,
+  reviewDurationMs,
 }: {
   analyzing: boolean
   events: ReviewEvent[]
   findings: Finding[]
   phase: AnalysisPhase
   recordsTotal: number
+  reviewDurationMs?: number
 }) {
   const [selectedId, setSelectedId] = useState<string | null>(null)
   const [decisions, setDecisions] = useState<Record<string, ReviewDecision>>({})
   const total = Math.max(recordsTotal, events.length)
   const preparing = analyzing && phase !== "analyzing"
   const preparationCopy = phase === "analyzing" ? null : phaseCopy[phase]
+  const reviewProgress = `${events.length.toLocaleString()} of ${total.toLocaleString()} chunks reviewed`
+  const reviewStatus =
+    reviewDurationMs === undefined
+      ? reviewProgress
+      : `${reviewProgress} in ${formatDuration(reviewDurationMs)}`
   const selectedIndex = events.findIndex((event) => event.id === selectedId)
   const selectedEvent = selectedIndex >= 0 ? events[selectedIndex] : undefined
   const selectedFinding = selectedEvent
@@ -726,7 +743,7 @@ function ChunkGrid({
               {preparing
                 ? preparationCopy?.detail
                 : total > 0
-                  ? `${events.length.toLocaleString()} of ${total.toLocaleString()} chunks reviewed`
+                  ? reviewStatus
                   : "Preparing document chunks…"}
             </p>
           </div>
@@ -925,6 +942,7 @@ export default function InvestigationWorkspace() {
           findings={result?.findings ?? []}
           phase={phase}
           recordsTotal={recordsTotal}
+          reviewDurationMs={result?.reviewDurationMs}
         />
       )}
       {!analyzing && !result && (
