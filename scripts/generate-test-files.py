@@ -395,6 +395,82 @@ def add_json() -> None:
     (OUT / "vendor-master.json").write_text(json.dumps(records, indent=2) + "\n", encoding="utf-8")
 
 
+def add_two_fraud_patches() -> None:
+    records = [
+        {
+            "record_id": "CTRL-001",
+            "posting_date": "2026-09-10",
+            "vendor": "Northstar Office Supply LLC",
+            "amount": 684.27,
+            "description": "Routine office supply replenishment under the approved quarterly purchase order.",
+            "purchase_order": "PO-260731",
+            "invoice_id": "NS-9104",
+            "approval": "Approved by Operations manager and matched to the receiving record.",
+            "payment_account": "Approved vendor account ending 1842",
+            "supporting_evidence": "Itemized invoice, delivery confirmation, and three-way match are attached. Vendor identity and bank details match the approved vendor directory. No exception, override, duplicate, or manual adjustment was recorded.",
+            "expected_result": "clear",
+        },
+        {
+            "record_id": "FRAUD-001",
+            "posting_date": "2026-09-11",
+            "vendor": "Apex Strategic Services LLC",
+            "amount": 18750.00,
+            "description": "Fabricated consulting invoice for work that was never performed.",
+            "purchase_order": None,
+            "invoice_id": "AP-2026-20",
+            "approval": "Cameron Price bypassed procurement and approved the payment to a personal checking account he controls.",
+            "payment_account": "Personal checking ending 4401",
+            "supporting_evidence": "Time sheets were forged. No consultant attended, no deliverables exist, and the vendor address matches the approver's mailbox.",
+            "fraud_admission": "This is an intentionally fraudulent test record. The approver created a shell vendor and stole the full payment.",
+            "expected_result": "fraud",
+        },
+        {
+            "record_id": "CTRL-002",
+            "posting_date": "2026-09-12",
+            "vendor": "Atlas Telecom Inc.",
+            "amount": 780.32,
+            "description": "Monthly office internet service under the existing telecommunications contract.",
+            "purchase_order": "PO-260101",
+            "invoice_id": "AT-202609",
+            "approval": "Automatically approved after contract, rate, and service-period validation.",
+            "payment_account": "Approved vendor account ending 8305",
+            "supporting_evidence": "The amount agrees to the contracted monthly rate and the prior invoice. Service dates do not overlap another billing period. The vendor is active, its annual review is current, and the bank account has not changed. The invoice passed duplicate and purchase-order matching.",
+            "expected_result": "clear",
+        },
+        {
+            "record_id": "FRAUD-002",
+            "posting_date": "2026-09-13",
+            "vendor": "Quick Cash Services LLC",
+            "amount": 14700.00,
+            "description": "Three sham campaign-support charges deliberately split below the $5,000 approval threshold.",
+            "purchase_order": None,
+            "invoice_id": "QCS-91 / QCS-92 / QCS-93",
+            "approval": "Avery Brooks submitted and self-approved three $4,900 charges on the same day.",
+            "payment_account": "Newly substituted account ending 1170",
+            "supporting_evidence": "Invoices are identical, unsupported, and minutes apart. Messages demand amounts below $5,000; the vendor kicked proceeds back.",
+            "fraud_admission": "This is an intentionally fraudulent test record. The requestor split a fake payment to evade controls and receive a kickback.",
+            "expected_result": "fraud",
+        },
+        {
+            "record_id": "CTRL-003",
+            "posting_date": "2026-09-14",
+            "vendor": "Lumen Research Partners",
+            "amount": 3200.00,
+            "description": "Final research milestone for completed customer interviews and transcript delivery.",
+            "purchase_order": "PO-260701",
+            "invoice_id": "LR-224",
+            "approval": "Approved by Product after acceptance of the contracted milestone.",
+            "payment_account": "Approved vendor account ending 3048",
+            "supporting_evidence": "The research repository contains the expected interview recordings, consent forms, transcripts, and final synthesis. The amount matches the statement of work and remaining purchase-order balance. Vendor identity, tax documentation, and remittance details are verified and unchanged.",
+            "expected_result": "clear",
+        },
+    ]
+    (OUT / "two-fraud-patches.json").write_text(
+        json.dumps(records, indent=2) + "\n",
+        encoding="utf-8",
+    )
+
+
 def add_pdf() -> None:
     path = OUT / "invoice-apex.pdf"
     doc = SimpleDocTemplate(str(path), pagesize=letter, rightMargin=0.58*inch, leftMargin=0.58*inch, topMargin=0.48*inch, bottomMargin=0.52*inch, title="Apex Strategic Services Invoice AP-2026-18", author="Apex Strategic Services LLC")
@@ -426,6 +502,7 @@ if __name__ == "__main__":
     OUT.mkdir(exist_ok=True)
     add_csv()
     add_json()
+    add_two_fraud_patches()
     add_xlsx()
     add_docx()
     add_pdf()

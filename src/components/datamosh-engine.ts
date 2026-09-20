@@ -9,6 +9,8 @@ const STRETCH = 8.5
 const SPRING_STRENGTH = 1.6
 const BLEED = 0.012
 const COLUMN_PHASE = -0.4
+const ENTER_DURATION = 0.72
+const ENTER_DELAYS = [0.04, 0.2, 0.08, 0.3, 0, 0.16, 0.06, 0.26, 0.11, 0.34, 0.14]
 const REVEAL_DURATION = 1
 const REVEAL_DELAYS = [0.02, 0.18, 0.06, 0.28, 0, 0.14, 0.04, 0.24, 0.09, 0.32, 0.12]
 const SPRING_NORMALIZER = 1 - Math.exp(-SPRING_STRENGTH)
@@ -140,6 +142,11 @@ export class DatamoshEngine {
       const step = Math.floor(linear)
       const flow = step + springStep(linear - step)
       const base = -Math.floor(flow)
+      const enterProgress = Math.min(
+        1,
+        Math.max(0, (this.elapsed - ENTER_DELAYS[column]) / ENTER_DURATION),
+      )
+      const enterBottom = Math.round((1 - Math.pow(1 - enterProgress, 3)) * this.height)
       const revealProgress = this.revealing
         ? Math.min(1, Math.max(0, (this.revealElapsed - REVEAL_DELAYS[column]) / REVEAL_DURATION))
         : 0
@@ -153,7 +160,7 @@ export class DatamoshEngine {
         if (bottom <= top || bottom <= 0 || top >= this.height) continue
 
         const y = Math.max(revealTop, top)
-        const tileHeight = Math.min(this.height, bottom) - y
+        const tileHeight = Math.min(this.height, enterBottom, bottom) - y
         if (tileHeight <= 0) continue
 
         const colorIndex = identity - column
@@ -196,7 +203,7 @@ export class DatamoshEngine {
 
   renderStill() {
     if (!this.ok) return
-    this.elapsed = CYCLE_SECONDS * 0.45 + COLUMNS * COLUMN_STAGGER
+    this.elapsed = Math.max(...ENTER_DELAYS) + ENTER_DURATION
     this.draw()
   }
 

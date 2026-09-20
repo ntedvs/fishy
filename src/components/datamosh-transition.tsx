@@ -43,7 +43,7 @@ export default function DatamoshTransition({ revealing }: { revealing: boolean }
   return (
     <div
       aria-hidden="true"
-      className="datamosh-curtain fixed inset-0 z-50 overflow-hidden bg-burgundy"
+      className="datamosh-curtain fixed inset-0 z-50 overflow-hidden"
       data-state={revealing ? "revealing" : "covered"}
       ref={hostRef}
     />

@@ -65,21 +65,10 @@
   }
 }
 
-@keyframes datamosh-curtain-enter {
-  from {
-    clip-path: inset(0 0 100% 0);
-  }
-  to {
-    clip-path: inset(0);
-  }
-}
-
 .datamosh-curtain {
-  clip-path: inset(0);
   opacity: 1;
-  animation: datamosh-curtain-enter 1100ms cubic-bezier(0.22, 1, 0.36, 1) both;
   transition: opacity 250ms ease-in 1250ms;
-  will-change: clip-path, opacity;
+  will-change: opacity;
 }
 
 .datamosh-curtain[data-state="revealing"] {
@@ -115,7 +104,6 @@
   }
 
   .datamosh-curtain {
-    animation: none;
     transition: none;
   }
 }
